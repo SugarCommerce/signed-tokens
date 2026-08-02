@@ -1,10 +1,10 @@
 {
-  "name": "sugarmill/signed-tokens",
+  "name": "sugarcommerce/signed-tokens",
   "version": "1.0.0",
   "description": "HMAC-signed, expiring, namespaced tokens for URLs. Magic sign-in links, password resets, download URLs and unsubscribe links with no database row. Zero dependencies, supports secret rotation.",
   "type": "library",
   "license": "GPL-2.0-or-later",
-  "homepage": "https://github.com/sugarmill/signed-tokens",
+  "homepage": "https://github.com/sugarcommerce/signed-tokens",
   "authors": [
     {
       "name": "David Sherlock",
@@ -29,12 +29,12 @@
   },
   "autoload": {
     "psr-4": {
-      "SugarMill\\SignedTokens\\": "src/"
+      "Sugar\\SignedTokens\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "SugarMill\\SignedTokens\\Tests\\": "tests/"
+      "Sugar\\SignedTokens\\Tests\\": "tests/"
     }
   },
   "scripts": {
@@ -49,7 +49,7 @@
   "minimum-stability": "stable",
   "prefer-stable": true,
   "support": {
-    "issues": "https://github.com/sugarmill/signed-tokens/issues",
-    "source": "https://github.com/sugarmill/signed-tokens"
+    "issues": "https://github.com/sugarcommerce/signed-tokens/issues",
+    "source": "https://github.com/sugarcommerce/signed-tokens"
   }
 }

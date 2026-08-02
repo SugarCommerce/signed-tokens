@@ -2,7 +2,7 @@
 /**
  * HMAC-signed, expiring, namespaced tokens for URLs.
  *
- * @package   SugarMill\SignedTokens
+ * @package   Sugar\SignedTokens
  * @copyright Copyright (c) 2026, ArrayPress Limited
  * @license   GPL-2.0-or-later
  * @since     1.0.0
@@ -10,7 +10,7 @@
 
 declare( strict_types=1 );
 
-namespace SugarMill\SignedTokens;
+namespace Sugar\SignedTokens;
 
 /**
  * Class TokenSigner
@@ -79,7 +79,7 @@ final readonly class TokenSigner {
 	 * Versioned: bumping this invalidates every token in circulation, so
 	 * it moves only on a deliberate format break.
 	 */
-	private const KDF_CONTEXT = 'sugarmill/signed-tokens/v1/';
+	private const KDF_CONTEXT = 'sugarcommerce/signed-tokens/v1/';
 
 	/**
 	 * Signature length in hex characters.
