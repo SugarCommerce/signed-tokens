@@ -2,7 +2,7 @@
 /**
  * Base64Url test suite.
  *
- * @package   Sugar\SignedTokens
+ * @package   SugarCommerce\SignedTokens
  * @copyright Copyright (c) 2026, ArrayPress Limited
  * @license   GPL-2.0-or-later
  * @since     1.0.0
@@ -10,11 +10,11 @@
 
 declare( strict_types=1 );
 
-namespace Sugar\SignedTokens\Tests;
+namespace SugarCommerce\SignedTokens\Tests;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Sugar\SignedTokens\Base64Url;
+use SugarCommerce\SignedTokens\Base64Url;
 
 final class Base64UrlTest extends TestCase {
 

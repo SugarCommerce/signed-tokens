@@ -3,7 +3,7 @@ declare( strict_types=1 );
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../../bench-lib.php';
 
-use Sugar\SignedTokens\{TokenSigner, Ttl};
+use SugarCommerce\SignedTokens\{TokenSigner, Ttl};
 
 $signer = new TokenSigner( TokenSigner::generate_secret() );
 $token  = $signer->sign( 'magic-link', array( 'user' => 42 ), Ttl::FIFTEEN_MINUTES );

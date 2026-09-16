@@ -29,7 +29,7 @@ composer require sugarcommerce/signed-tokens
 ### Magic sign-in link
 
 ```php
-use Sugar\SignedTokens\TokenSigner;
+use SugarCommerce\SignedTokens\TokenSigner;
 
 $signer = new TokenSigner( getenv( 'TOKEN_SECRET' ) );
 
@@ -54,7 +54,7 @@ $user_id = $token->int( 'user' );
 `verify()` collapses every failure to null. When the difference matters — an expired magic link deserves "request a new one", not "invalid link" — use `inspect()`:
 
 ```php
-use Sugar\SignedTokens\{Token, Reason};
+use SugarCommerce\SignedTokens\{Token, Reason};
 
 $result = $signer->inspect( 'magic-link', $input );
 

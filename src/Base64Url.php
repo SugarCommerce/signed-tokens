@@ -2,7 +2,7 @@
 /**
  * URL-safe base64 (RFC 4648 section 5).
  *
- * @package   Sugar\SignedTokens
+ * @package   SugarCommerce\SignedTokens
  * @copyright Copyright (c) 2026, ArrayPress Limited
  * @license   GPL-2.0-or-later
  * @since     1.0.0
@@ -10,7 +10,7 @@
 
 declare( strict_types=1 );
 
-namespace Sugar\SignedTokens;
+namespace SugarCommerce\SignedTokens;
 
 /**
  * Class Base64Url
