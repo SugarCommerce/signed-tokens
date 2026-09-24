@@ -45,20 +45,20 @@ namespace SugarCommerce\SignedTokens;
  */
 final readonly class Ttl {
 
-	public const MINUTE           = 60;
-	public const FIVE_MINUTES     = 300;
-	public const TEN_MINUTES      = 600;
-	public const FIFTEEN_MINUTES  = 900;
-	public const THIRTY_MINUTES   = 1800;
-	public const HOUR             = 3600;
-	public const TWO_HOURS        = 7200;
-	public const SIX_HOURS        = 21600;
-	public const TWELVE_HOURS     = 43200;
-	public const DAY              = 86400;
-	public const THREE_DAYS       = 259200;
-	public const WEEK             = 604800;
-	public const THIRTY_DAYS      = 2592000;
-	public const YEAR             = 31536000;
+	public const int MINUTE = 60;
+	public const int FIVE_MINUTES = 300;
+	public const int TEN_MINUTES = 600;
+	public const int FIFTEEN_MINUTES = 900;
+	public const int THIRTY_MINUTES = 1800;
+	public const int HOUR = 3600;
+	public const int TWO_HOURS = 7200;
+	public const int SIX_HOURS = 21600;
+	public const int TWELVE_HOURS = 43200;
+	public const int DAY = 86400;
+	public const int THREE_DAYS = 259200;
+	public const int WEEK = 604800;
+	public const int THIRTY_DAYS = 2592000;
+	public const int YEAR = 31536000;
 
 	/**
 	 * N minutes in seconds.

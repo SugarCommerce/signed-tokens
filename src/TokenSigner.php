@@ -66,12 +66,12 @@ final readonly class TokenSigner {
 	 * Below this, an offline attacker can brute-force the secret from a
 	 * single captured token and then mint whatever they like.
 	 */
-	public const MIN_SECRET_BYTES = 32;
+	public const int MIN_SECRET_BYTES = 32;
 
 	/**
 	 * Hash used for the signature and the key derivation.
 	 */
-	private const ALGORITHM = 'sha256';
+	private const string ALGORITHM = 'sha256';
 
 	/**
 	 * Domain-separation context for per-namespace subkey derivation.
@@ -79,12 +79,12 @@ final readonly class TokenSigner {
 	 * Versioned: bumping this invalidates every token in circulation, so
 	 * it moves only on a deliberate format break.
 	 */
-	private const KDF_CONTEXT = 'sugarcommerce/signed-tokens/v1/';
+	private const string KDF_CONTEXT = 'sugarcommerce/signed-tokens/v1/';
 
 	/**
 	 * Signature length in hex characters.
 	 */
-	private const SIGNATURE_LENGTH = 64;
+	private const int SIGNATURE_LENGTH = 64;
 
 	/**
 	 * Retired secrets still accepted at verification.
@@ -187,6 +187,7 @@ final readonly class TokenSigner {
 	 *
 	 * @return Token|null Verified contents, or null on any failure.
 	 */
+	#[\NoDiscard( 'Null means the token is forged, tampered with or expired.' )]
 	public function verify( string $namespace, string $token ): ?Token {
 		$result = $this->inspect( $namespace, $token );
 
@@ -209,6 +210,7 @@ final readonly class TokenSigner {
 	 *
 	 * @return Token|Reason Verified contents, or why not.
 	 */
+	#[\NoDiscard( 'A Reason means the token is not valid.' )]
 	public function inspect( string $namespace, string $token ): Token|Reason {
 		$namespace = self::assert_namespace( $namespace );
 		$parts     = explode( '.', $token );
@@ -304,6 +306,7 @@ final readonly class TokenSigner {
 	 *
 	 * @return bool
 	 */
+	#[\NoDiscard( 'False means the signature does not match.' )]
 	public function verify_detached( string $namespace, array $payload, int $expires_at, string $given ): bool {
 		if ( strlen( $given ) !== self::SIGNATURE_LENGTH || 1 !== preg_match( '/^[a-f0-9]+$/', $given ) ) {
 			return false;
