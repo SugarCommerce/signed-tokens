@@ -142,6 +142,15 @@ At least 32 bytes, enforced:
 php -r "echo bin2hex(random_bytes(32));"
 ```
 
+### One secret, several purposes
+
+```php
+$downloads = TokenSigner::derived( getenv( 'APP_SECRET' ), 'shop/download-links/v1' );
+$sign_in   = TokenSigner::derived( getenv( 'APP_SECRET' ), 'shop/sign-in/v1' );
+```
+
+Each purpose gets its own key (HKDF-SHA256, hex-encoded), so a token minted for one never verifies as another, and none reveals the secret. The same secret and context always give the same key; retired secrets passed as the third argument are derived the same way.
+
 ## Why not JWT?
 
 JWT carries its own algorithm in an attacker-supplied header, which has produced a long run of `alg: none` and RS256/HS256 confusion vulnerabilities. Here the algorithm is fixed, the namespace is chosen by the verifying code rather than the token, and there's no header to parse. Less flexible, and that's the point.
@@ -155,7 +164,7 @@ composer install
 composer test
 ```
 
-95 tests, covering tamper detection, cross-namespace replay, expiry boundaries, rotation, and failure-precedence ordering.
+128 tests, covering tamper detection, derived keys, cross-namespace replay, expiry boundaries, rotation, and failure-precedence ordering.
 
 ## License
 

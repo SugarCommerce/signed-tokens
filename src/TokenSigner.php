@@ -402,6 +402,54 @@ final readonly class TokenSigner {
 	}
 
 	/**
+	 * A signer keyed for one purpose, from a secret shared by several.
+	 *
+	 * An application usually has one configured secret. Signing download
+	 * links, sign-in links and API tokens all with it directly means a
+	 * token minted for one purpose is a valid signature for another
+	 * wherever the namespaces happen to coincide, and rotating it rotates
+	 * everything. HKDF gives each purpose its own key from the one secret.
+	 *
+	 * Stable: the same secret and context always give the same key — the
+	 * HKDF-SHA256 output, hex-encoded — so tokens signed yesterday still
+	 * verify. Retired shared secrets are derived the same way, so a rotated
+	 * secret keeps verifying what it signed, as with the constructor.
+	 *
+	 * ```php
+	 * $links = TokenSigner::derived( $secret, 'shop/download-links/v1' );
+	 * ```
+	 *
+	 * @since 1.3.0
+	 *
+	 * @param string             $secret   The shared secret.
+	 * @param string             $context  What the tokens are for. Different
+	 *                                     contexts never verify each other's.
+	 * @param array<int, string> $previous Retired shared secrets.
+	 * @param int|null           $timestamp Fixed "now", for tests.
+	 *
+	 * @return self
+	 *
+	 * @throws \InvalidArgumentException When $context is empty.
+	 * @throws \ValueError                When $secret is empty.
+	 */
+	public static function derived(
+		#[\SensitiveParameter]
+		string $secret,
+		string $context,
+		#[\SensitiveParameter]
+		array $previous = array(),
+		?int $timestamp = null,
+	): self {
+		if ( '' === $context ) {
+			throw new \InvalidArgumentException( 'A derived signer needs a context: what its tokens are for.' );
+		}
+
+		$derive = static fn( string $shared ): string => bin2hex( hash_hkdf( 'sha256', $shared, 32, $context ) );
+
+		return new self( $derive( $secret ), array_map( $derive, array_values( $previous ) ), $timestamp );
+	}
+
+	/**
 	 * Generate a master secret.
 	 *
 	 * Convenience for setup scripts. Store the result in your

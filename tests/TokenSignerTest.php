@@ -522,4 +522,41 @@ final class TokenSignerTest extends TestCase {
 		$this->assertStringContainsString( 'expired', Reason::Expired->public_message() );
 		$this->assertSame( Reason::Malformed->public_message(), Reason::InvalidSignature->public_message() );
 	}
+
+	/* ─── Derived signers (1.3.0) ───────────────────────────────────── */
+
+	public function test_a_derived_signer_is_the_hex_hkdf_key(): void {
+		$expected = new TokenSigner( bin2hex( hash_hkdf( 'sha256', self::SECRET, 32, 'app/links/v1' ) ) );
+		$derived  = TokenSigner::derived( self::SECRET, 'app/links/v1' );
+		$token    = $expected->sign_until( 'dl', array( 'o' => 1 ), 4_000_000_000 );
+
+		$this->assertNotNull( $derived->verify( 'dl', $token ), 'tokens signed by the hand-derived key still verify' );
+		$this->assertSame( $token, $derived->sign_until( 'dl', array( 'o' => 1 ), 4_000_000_000 ) );
+	}
+
+	public function test_contexts_do_not_verify_each_other(): void {
+		$token = TokenSigner::derived( self::SECRET, 'app/a' )->sign( 'ns', array( 'x' => 1 ), 60 );
+
+		$this->assertNull( TokenSigner::derived( self::SECRET, 'app/b' )->verify( 'ns', $token ) );
+		$this->assertNull( ( new TokenSigner( self::SECRET ) )->verify( 'ns', $token ), 'nor does the bare secret' );
+	}
+
+	public function test_a_retired_shared_secret_still_verifies_through_derivation(): void {
+		$old   = TokenSigner::derived( self::SECRET2, 'app/links' )->sign( 'ns', array( 'x' => 1 ), 60 );
+		$after = TokenSigner::derived( self::SECRET, 'app/links', array( self::SECRET2 ) );
+
+		$this->assertNotNull( $after->verify( 'ns', $old ) );
+	}
+
+	public function test_a_derived_signer_needs_a_context(): void {
+		$this->expectException( \InvalidArgumentException::class );
+
+		TokenSigner::derived( self::SECRET, '' );
+	}
+
+	public function test_a_derived_signer_keeps_the_fixed_time(): void {
+		$signer = TokenSigner::derived( self::SECRET, 'app/t', timestamp: 1_000 );
+
+		$this->assertNull( $signer->verify( 'ns', $signer->sign_until( 'ns', array(), 999 ) ) );
+	}
 }
