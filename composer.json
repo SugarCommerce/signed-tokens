@@ -1,6 +1,6 @@
 {
   "name": "sugarcommerce/signed-tokens",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "HMAC-signed, expiring, namespaced tokens for URLs. Magic sign-in links, password resets, download URLs and unsubscribe links with no database row. Zero dependencies, supports secret rotation.",
   "type": "library",
   "license": "GPL-2.0-or-later",

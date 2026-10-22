@@ -27,6 +27,8 @@ namespace SugarCommerce\SignedTokens;
 final readonly class Token {
 
 	/**
+	 * Wrap verified claims. Only {@see TokenSigner} should call this.
+	 *
 	 * @since 1.0.0
 	 *
 	 * @param string                         $namespace  Purpose the token was verified under.
@@ -44,8 +46,8 @@ final readonly class Token {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param string                     $key     Claim name.
-	 * @param string|int|bool|null       $default Returned when absent.
+	 * @param string               $key     Claim name.
+	 * @param string|int|bool|null $default Returned when absent.
 	 *
 	 * @return string|int|bool|null
 	 */

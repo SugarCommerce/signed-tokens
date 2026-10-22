@@ -88,7 +88,7 @@ $signer = new TokenSigner(
 );
 ```
 
-Drop the old secret once its longest TTL has passed.
+Drop the old secret once its longest TTL has passed. Retired secrets are held to the same 32-byte minimum as the current one (an unset `getenv()` is skipped), since a forger only needs to crack one of them.
 
 ### Single use
 

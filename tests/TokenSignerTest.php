@@ -317,8 +317,57 @@ final class TokenSignerTest extends TestCase {
 		$this->assertInstanceOf( TokenSigner::class, new TokenSigner( str_repeat( 'x', TokenSigner::MIN_SECRET_BYTES ) ) );
 	}
 
+	public function test_a_short_retired_secret_is_refused(): void {
+		// A weak retired secret would let a forger brute-force it offline
+		// and mint tokens the signer still accepts.
+		$this->expectException( \InvalidArgumentException::class );
+		new TokenSigner( self::SECRET, array( 'old-weak-secret' ), self::NOW );
+	}
+
+	public function test_a_non_string_retired_secret_is_refused(): void {
+		$this->expectException( \InvalidArgumentException::class );
+		new TokenSigner( self::SECRET, array( 12345 ), self::NOW );
+	}
+
+	public function test_secrets_are_kept_out_of_debug_output(): void {
+		$signer = new TokenSigner( self::SECRET, array( self::SECRET2 ), self::NOW );
+
+		$dumped = print_r( $signer, true );
+		ob_start();
+		var_dump( $signer );
+		$dumped .= (string) ob_get_clean();
+
+		$this->assertStringNotContainsString( self::SECRET, $dumped );
+		$this->assertStringNotContainsString( self::SECRET2, $dumped );
+	}
+
+	#[DataProvider( 'respelled_expiries' )]
+	public function test_a_respelled_expiry_is_malformed( string $respell ): void {
+		$signer = $this->signer();
+		$token  = $signer->sign_until( 'ns', array( 'u' => 1 ), self::NOW + 60 );
+
+		[ $payload, , $signature ] = explode( '.', $token );
+
+		$this->assertSame( Reason::Malformed, $signer->inspect( 'ns', $payload . '.' . sprintf( $respell, self::NOW + 60 ) . '.' . $signature ) );
+	}
+
+	/** @return array<string, array{0: string}> */
+	public static function respelled_expiries(): array {
+		return array(
+			'leading zero'  => array( '0%d' ),
+			'leading zeros' => array( '000%d' ),
+		);
+	}
+
+	public function test_an_overflowing_expiry_is_malformed(): void {
+		$this->assertSame(
+			Reason::Malformed,
+			$this->signer()->inspect( 'ns', 'YQ.99999999999999999999.' . str_repeat( 'a', 64 ) )
+		);
+	}
+
 	public function test_empty_retired_secrets_are_ignored(): void {
-		$signer = new TokenSigner( self::SECRET, array( '', null, self::SECRET2 ), self::NOW );
+		$signer = new TokenSigner( self::SECRET, array( '', null, false, self::SECRET2 ), self::NOW );
 
 		$this->assertInstanceOf( Token::class, $signer->verify( 'ns', $signer->sign( 'ns', array(), 60 ) ) );
 	}

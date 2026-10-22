@@ -89,23 +89,31 @@ final readonly class TokenSigner {
 	/**
 	 * Retired secrets still accepted at verification.
 	 *
-	 * @var string[]
+	 * @var list<string>
 	 */
 	private array $previous;
 
 	/**
+	 * Create a signer.
+	 *
 	 * @since 1.0.0
 	 *
 	 * @param string   $secret    Current signing secret. At least
 	 *                            {@see self::MIN_SECRET_BYTES} bytes;
 	 *                            `bin2hex( random_bytes( 32 ) )` is ideal.
-	 * @param string[] $previous  Retired secrets, accepted for
+	 * @param array<mixed> $previous Retired secrets, accepted for
 	 *                            verification only, so live links survive
-	 *                            a rotation.
+	 *                            a rotation. Empty values (an unset
+	 *                            `getenv()` returns false) are skipped;
+	 *                            anything else must be a string of at
+	 *                            least {@see self::MIN_SECRET_BYTES} bytes,
+	 *                            since a weak retired secret is as good
+	 *                            as a weak current one to a forger.
 	 * @param int|null $timestamp Fixed Unix time, for tests. Null uses
 	 *                            the clock.
 	 *
-	 * @throws \InvalidArgumentException When the secret is too short.
+	 * @throws \InvalidArgumentException When the secret, or any retired
+	 *                                   secret, is too short.
 	 */
 	public function __construct(
 		#[\SensitiveParameter]
@@ -121,7 +129,26 @@ final readonly class TokenSigner {
 			);
 		}
 
-		$this->previous = array_values( array_filter( $previous, static fn( $s ): bool => is_string( $s ) && '' !== $s ) );
+		$this->previous = self::retired_secrets( $previous );
+	}
+
+	/**
+	 * Keep secrets out of `var_dump()` and `print_r()` output.
+	 *
+	 * Both would otherwise print the master secret and every retired
+	 * one, which is exactly what ends up pasted into a bug report or an
+	 * error log.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @return array{secret: string, previous: int, timestamp: int|null}
+	 */
+	public function __debugInfo(): array {
+		return array(
+			'secret'    => '[redacted]',
+			'previous'  => count( $this->previous ),
+			'timestamp' => $this->timestamp,
+		);
 	}
 
 	/* ─── Signing ───────────────────────────────────────────────────── */
@@ -221,7 +248,12 @@ final readonly class TokenSigner {
 
 		[ $encoded, $expiry_raw, $given ] = $parts;
 
-		if ( 1 !== preg_match( '/^\d{1,20}$/', $expiry_raw ) ) {
+		// Canonical digits only: no leading zeros, and short enough to fit
+		// an int. The signature covers the parsed integer, so without this
+		// `0123` and `123` (or any two overflowing values) would carry the
+		// same valid signature, and an app that records spent tokens by
+		// their string could be replayed with a re-spelled copy.
+		if ( 1 !== preg_match( '/^(?:0|[1-9]\d{0,18})$/', $expiry_raw ) || $expiry_raw !== (string) (int) $expiry_raw ) {
 			return Reason::Malformed;
 		}
 
@@ -386,6 +418,38 @@ final readonly class TokenSigner {
 	}
 
 	/**
+	 * Validate the retired secrets passed to the constructor.
+	 *
+	 * @since 1.2.0
+	 *
+	 * @param array<mixed> $previous Raw list as passed in.
+	 *
+	 * @return list<string> Usable secrets, empties dropped.
+	 *
+	 * @throws \InvalidArgumentException When a retired secret is not a
+	 *                                   string or is too short.
+	 */
+	private static function retired_secrets( #[\SensitiveParameter] array $previous ): array {
+		$secrets = array();
+
+		foreach ( $previous as $candidate ) {
+			if ( null === $candidate || false === $candidate || '' === $candidate ) {
+				continue;
+			}
+
+			if ( ! is_string( $candidate ) || strlen( $candidate ) < self::MIN_SECRET_BYTES ) {
+				throw new \InvalidArgumentException(
+					'Retired signing secrets must be strings of at least ' . self::MIN_SECRET_BYTES . ' bytes.'
+				);
+			}
+
+			$secrets[] = $candidate;
+		}
+
+		return $secrets;
+	}
+
+	/**
 	 * Validate a namespace.
 	 *
 	 * @since 1.0.0
@@ -412,7 +476,9 @@ final readonly class TokenSigner {
 	 *
 	 * @since 1.0.0
 	 *
-	 * @param array<string, string|int|bool> $payload Claims.
+	 * @param array<mixed> $payload Claims, as passed in by the caller. Typed
+	 *                              loosely because this is where the
+	 *                              documented shape is enforced at runtime.
 	 *
 	 * @return string JSON.
 	 *
